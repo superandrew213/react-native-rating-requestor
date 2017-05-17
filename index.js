@@ -13,7 +13,9 @@ const _config = {
 	},
 	timingFunction: function(currentCount) {
 		return currentCount > 1 && (Math.log(currentCount) / Math.log(3)).toFixed(4) % 1 == 0;
-	}
+	},
+	showRequest: currentCount => true,
+	onPositiveEvent: currentCount => null,
 };
 
 async function _isAwaitingRating() {
@@ -68,18 +70,18 @@ export default class RatingRequestor {
 			'market://details?id=' + _config.appStoreId;
 
 		Alert.alert(
-			_config.title, 
-			_config.message, 
+			_config.title,
+			_config.message,
 			[
 				{ text: _config.actionLabels.decline, onPress: () => { RatingsData.recordDecline(); callback(true, 'decline'); } },
 				{ text: _config.actionLabels.delay, onPress: () => { callback(true, 'delay'); } },
-				{ text: _config.actionLabels.accept, onPress: () => { 
-					RatingsData.recordRated(); 
+				{ text: _config.actionLabels.accept, onPress: () => {
+					RatingsData.recordRated();
 					callback(true, 'accept');
 					Linking.openURL(storeUrl);
 				}, style: 'cancel' }
 			]
-		);	
+		);
 	}
 
 	/**
@@ -93,7 +95,10 @@ export default class RatingRequestor {
 			let currentCount = await RatingsData.incrementCount();
 
 			if (_config.timingFunction(currentCount)) {
-				this.showRatingDialog(callback);
+				if (_config.showRequest(currentCount)) {
+					this.showRatingDialog(callback);
+				}
+				_config.onPositiveEvent(currentCount);
 			} else callback(false);
 		} else callback(false);
 	}
