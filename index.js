@@ -15,7 +15,7 @@ const _config = {
 		return currentCount > 1 && (Math.log(currentCount) / Math.log(3)).toFixed(4) % 1 == 0;
 	},
 	showRequest: (isAwaitingRating, currentCount) => isAwaitingRating,
-	onPositiveEvent: (isAwaitingRating, currentCount) => null,
+	onRequestShow: (isAwaitingRating, currentCount) => null,
 };
 
 async function _isAwaitingRating() {
@@ -99,7 +99,7 @@ export default class RatingRequestor {
 				if (_config.showRequest(isAwaitingRating, currentCount)) {
 					this.showRatingDialog(callback);
 				}
-				_config.onPositiveEvent(isAwaitingRating, currentCount);
+				_config.onRequestShow(isAwaitingRating, currentCount);
 			} else callback(false);
 		} else callback(false);
 	}
