@@ -14,8 +14,8 @@ const _config = {
 	timingFunction: function(currentCount) {
 		return currentCount > 1 && (Math.log(currentCount) / Math.log(3)).toFixed(4) % 1 == 0;
 	},
-	showRequest: currentCount => true,
-	onPositiveEvent: currentCount => null,
+	showRequest: (isAwaitingRating, currentCount) => isAwaitingRating,
+	onPositiveEvent: (isAwaitingRating, currentCount) => null,
 };
 
 async function _isAwaitingRating() {
@@ -91,14 +91,15 @@ export default class RatingRequestor {
 	 * @param {function(didAppear: boolean, result: string)} callback Optional. Callback that reports whether the dialog appeared and what the result was.
 	 */
 	async handlePositiveEvent(callback = () => {}) {
-		if (await _isAwaitingRating()) {
+		const isAwaitingRating = await _isAwaitingRating();
+		if (isAwaitingRating) {
 			let currentCount = await RatingsData.incrementCount();
 
 			if (_config.timingFunction(currentCount)) {
-				if (_config.showRequest(currentCount)) {
+				if (_config.showRequest(isAwaitingRating, currentCount)) {
 					this.showRatingDialog(callback);
 				}
-				_config.onPositiveEvent(currentCount);
+				_config.onPositiveEvent(isAwaitingRating, currentCount);
 			} else callback(false);
 		} else callback(false);
 	}
