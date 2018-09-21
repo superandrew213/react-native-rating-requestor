@@ -15,7 +15,7 @@ const _config = {
 		return currentCount > 1 && (Math.log(currentCount) / Math.log(3)).toFixed(4) % 1 == 0;
 	},
 	showRequest: (isAwaitingRating, currentCount) => isAwaitingRating,
-	onRequestShow: (isAwaitingRating, currentCount) => null,
+	onRequestShow: (isAwaitingRating, currentCount, tracker) => null,
 };
 
 async function _isAwaitingRating() {
@@ -65,23 +65,36 @@ export default class RatingRequestor {
 	 * @param {function(didAppear: boolean, result: string)} callback Optional. Callback that reports whether the dialog appeared and what the result was.
 	 */
 	showRatingDialog(callback = () => {}) {
-		let storeUrl = Platform.OS === 'ios' ?
-			'http://itunes.apple.com/WebObjects/MZStore.woa/wa/viewContentsUserReviews?id=' + _config.appStoreId + '&pageNumber=0&sortOrdering=2&type=Purple+Software&mt=8' :
-			'market://details?id=' + _config.appStoreId;
-
 		Alert.alert(
 			_config.title,
 			_config.message,
 			[
-				{ text: _config.actionLabels.decline, onPress: () => { RatingsData.recordDecline(); callback(true, 'decline'); } },
+				{ text: _config.actionLabels.decline, onPress: () => { this.onDeclinePress(); callback(true, 'decline'); } },
 				{ text: _config.actionLabels.delay, onPress: () => { callback(true, 'delay'); } },
 				{ text: _config.actionLabels.accept, onPress: () => {
-					RatingsData.recordRated();
+					this.onAcceptPress();
 					callback(true, 'accept');
-					Linking.openURL(storeUrl);
 				}, style: 'cancel' }
 			]
 		);
+	}
+
+	onDeclinePress() {
+		RatingsData.recordDecline();
+	}
+
+	onDelayPress() {
+		// Do nothing
+	}
+
+	onAcceptPress(openStoreUrl = true) {
+		if (openStoreUrl) {
+			let storeUrl = Platform.OS === 'ios' ?
+				'http://itunes.apple.com/WebObjects/MZStore.woa/wa/viewContentsUserReviews?id=' + _config.appStoreId + '&pageNumber=0&sortOrdering=2&type=Purple+Software&mt=8' :
+				'market://details?id=' + _config.appStoreId;
+			Linking.openURL(storeUrl);
+		}
+		RatingsData.recordRated();
 	}
 
 	/**
@@ -99,7 +112,11 @@ export default class RatingRequestor {
 				if (_config.showRequest(isAwaitingRating, currentCount)) {
 					this.showRatingDialog(callback);
 				}
-				_config.onRequestShow(isAwaitingRating, currentCount);
+				_config.onRequestShow(isAwaitingRating, currentCount, {
+					onDeclinePress: this.onDeclinePress,
+					onDelayPress: this.onDelayPress,
+					onAcceptPress: this.onAcceptPress,
+				});
 			} else callback(false);
 		} else callback(false);
 	}
