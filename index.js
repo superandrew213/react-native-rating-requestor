@@ -120,4 +120,9 @@ export default class RatingRequestor {
 			} else callback(false);
 		} else callback(false);
 	}
+	
+	getPositiveEventCount = async () => {
+		const count = await RatingsData.getCount();
+		return count;
+	}
 }
