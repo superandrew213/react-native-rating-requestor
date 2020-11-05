@@ -29,6 +29,7 @@
   },
   "homepage": "https://github.com/jlyman/react-native-rating-requestor#readme",
   "peerDependencies": {
-    "react-native": ">= 0.20.0"
+    "react-native": ">= 0.20.0",
+    "@react-native-async-storage/async-storage": "^1.13.2"
   }
 }
