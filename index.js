@@ -105,9 +105,9 @@ export default class RatingRequestor {
 	 */
 	async handlePositiveEvent(callback = () => {}) {
 		const isAwaitingRating = await _isAwaitingRating();
+		let currentCount  = await RatingsData.incrementCount();
+		
 		if (isAwaitingRating) {
-			let currentCount = await RatingsData.incrementCount();
-
 			if (_config.timingFunction(currentCount)) {
 				if (_config.showRequest(isAwaitingRating, currentCount)) {
 					this.showRatingDialog(callback);
